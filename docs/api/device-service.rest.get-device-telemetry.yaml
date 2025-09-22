@@ -1,0 +1,43 @@
+paths:
+  /api/v1/telemetry/devices/{deviceId}/latest:
+    get:
+      summary: Получить последнюю телеметрию устройства
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Данные получены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetryData'
+              examples:
+                example1:
+                  value:
+                    deviceId: "dev-thermo-001"
+                    payload:
+                      temperature: 22.5
+                      battery: 87
+                    receivedAt: "2025-04-05T10:29:45Z"
+        '404':
+          description: Данные не найдены
+        '500':
+          description: Ошибка сервера
+
+components:
+  schemas:
+    TelemetryData:
+      type: object
+      properties:
+        deviceId:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+        receivedAt:
+          type: string
+          format: date-time

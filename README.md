@@ -50,8 +50,8 @@
 
 ### 5. Визуализация контекста системы — диаграмма С4
 
-[Диаграмма контекста AS-IS](diagrams/context/warmhouse_as_is.puml)
-[Диаграмма контекста TO-BE](diagrams/context/warmhouse_to_be.puml)
+[Диаграмма контекста AS-IS](diagrams/context/warmhouse_as_is.puml)  
+[Диаграмма контекста TO-BE](diagrams/context/warmhouse_to_be.puml)  
 
 # Задание 2. Проектирование микросервисной архитектуры
 
@@ -59,33 +59,48 @@
 
 **Диаграмма контейнеров (Containers)**
 
-[Диаграмма контейнеров](diagrams/container/warmhouse_to_be.puml)
+[Диаграмма контейнеров](diagrams/container/warmhouse_to_be.puml)  
 
 **Диаграмма компонентов (Components)**
 
-[Диаграмма компонентов сервиса управления устройствами](diagrams/component/warmhouse_device_control_service.puml)
-[Диаграмма компонентов сервиса телеметрии](diagrams/component/warmhouse_telemetry_service.puml)
-[Диаграмма компонентов UI сервиса](diagrams/component/warmhouse_user_service.puml)
-[Диаграмма компонентов API Gateway сервиса](diagrams/component/warmhouse_gateway_service.puml)
+[Диаграмма компонентов сервиса управления устройствами](diagrams/component/warmhouse_device_control_service.puml)  
+[Диаграмма компонентов сервиса телеметрии](diagrams/component/warmhouse_telemetry_service.puml)  
+[Диаграмма компонентов UI сервиса](diagrams/component/warmhouse_user_service.puml)  
+[Диаграмма компонентов API Gateway сервиса](diagrams/component/warmhouse_gateway_service.puml)  
 
 **Диаграмма кода (Code)**
 
-[Диаграмма UML — регистрация нового устройства](diagrams/code/warmhouse_gateway_service.puml)
+[Диаграмма UML — регистрация нового устройства](diagrams/code/warmhouse_register_device.puml)  
 
 # Задание 3. Разработка ER-диаграммы
 
-[ER-диаграмма для БД устройств](diagrams/entity/warmhouse_ER.puml)
+[ER-диаграмма для БД устройств](diagrams/entity/warmhouse_ER.puml)  
 
 
 # Задание 4. Создание и документирование API
 
 ### 1. Тип API
 
-Укажите, какой тип API вы будете использовать для взаимодействия микросервисов. Объясните своё решение.
+Для взаимодействия микросервисов будут иcпользованы как синхронный REST API, так и асинхронное взаимодействие (например, через брокер сообщений).  
+
+*Синхронный* API будет использоваться для:
+
+- получения информации об устройстве. Пользователь ждет немедленного отображения данных; ошибка обращения к устройству должна быть обработана сразу же.
+- отправка команды устройству. Когда пользователь выполняет команду, например "включить свет" - он ожидает немедленной обратной связи, либо выполнения операции, либо сообщения об ошибке.
+- создания правил автоматизации. Пользователь создает правило через UI (например, если температура ниже 18 градусов - включить отопление) и должен сразу увидеть результат: правило сохранено, устройство не доступно и т.п.
+
+*Асинхронный* API будет использоваться для:
+
+- отправка устройствами событий об изменении своего состояния, например: изменилась температура. Здесь не требуется немедленной реакции пользователя, достаточно просто получить новые данные и обновлить их сервисе управления устройствами.
 
 ### 2. Документация API
 
-Здесь приложите ссылки на документацию API для микросервисов, которые вы спроектировали в первой части проектной работы. Для документирования используйте Swagger/OpenAPI или AsyncAPI.
+[Получения информации об устройстве](docs/api/device-service.rest.get-device-info.yaml)  
+[Отправка команды устройству](docs/api/device-service.rest.send-device-command.yaml)  
+[Получение последней телеметрии устройства](docs/api/device-service.rest.get-device-telemetry.yaml)  
+[Создание правила автоматизации](docs/api/device-service.rest.create-auto-rule.yaml)  
+[Событие — устройство отправило телеметрию](docs/api/device-service.async.device-telemetry-received.yaml)  
+
 
 # Задание 5. Работа с docker и docker-compose
 

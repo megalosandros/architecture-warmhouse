@@ -1,0 +1,56 @@
+paths:
+  /api/v1/devices/{deviceId}/command:
+    post:
+      summary: Отправить команду устройству
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceCommand'
+            examples:
+              turnOn:
+                value:
+                  command: "turn_on"
+              setTemp:
+                value:
+                  command: "set_temperature"
+                  params:
+                    temperature: 22.5
+      responses:
+        '200':
+          description: Команда принята
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                example:
+                  status: "command_received"
+        '400':
+          description: Неверная команда
+        '404':
+          description: Устройство не найдено
+        '500':
+          description: Ошибка выполнения команды
+
+components:
+  schemas:
+    DeviceCommand:
+      type: object
+      required:
+        - command
+      properties:
+        command:
+          type: string
+        params:
+          type: object
+          additionalProperties: true

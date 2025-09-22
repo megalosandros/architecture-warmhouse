@@ -1,0 +1,74 @@
+paths:
+  /api/v1/automations:
+    post:
+      summary: Создать новое правило автоматизации
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AutomationRule'
+            examples:
+              example1:
+                value:
+                  name: "Включить отопление при низкой температуре"
+                  trigger:
+                    type: "device_event"
+                    deviceId: "dev-thermo-001"
+                    condition: "temperature < 18"
+                  action:
+                    type: "device_command"
+                    targetDeviceId: "dev-heater-001"
+                    command: "turn_on"
+                  isActive: true
+      responses:
+        '201':
+          description: Правило создано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AutomationRuleResponse'
+              examples:
+                example1:
+                  value:
+                    id: "rule-001"
+                    name: "Включить отопление при низкой температуре"
+                    isActive: true
+                    createdAt: "2025-04-05T10:30:00Z"
+        '400':
+          description: Неверный формат правила
+        '500':
+          description: Ошибка создания правила
+
+components:
+  schemas:
+    AutomationRule:
+      type: object
+      required:
+        - name
+        - trigger
+        - action
+      properties:
+        name:
+          type: string
+        trigger:
+          type: object
+          additionalProperties: true
+        action:
+          type: object
+          additionalProperties: true
+        isActive:
+          type: boolean
+
+    AutomationRuleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time

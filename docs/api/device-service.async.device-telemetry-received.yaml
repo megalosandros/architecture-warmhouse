@@ -1,0 +1,47 @@
+asyncapi: 2.6.0
+info:
+  title: Device Telemetry Events
+  version: 1.0.0
+
+servers:
+  nats:
+    url: nats://nats:4222
+    protocol: nats
+
+channels:
+  device.telemetry.received:
+    description: Событие публикуется, когда устройство отправляет новые данные телеметрии
+    publish:
+      message:
+        $ref: '#/components/messages/DeviceTelemetryEvent'
+
+components:
+  messages:
+    DeviceTelemetryEvent:
+      name: DeviceTelemetryEvent
+      title: Данные телеметрии от устройства
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TelemetryEventPayload'
+
+  schemas:
+    TelemetryEventPayload:
+      type: object
+      required:
+        - deviceId
+        - payload
+        - timestamp
+      properties:
+        deviceId:
+          type: string
+          example: "dev-thermo-001"
+        payload:
+          type: object
+          additionalProperties: true
+          example:
+            temperature: 21.8
+            humidity: 45
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-04-05T10:29:30Z"
