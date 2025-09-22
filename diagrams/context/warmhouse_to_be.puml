@@ -1,0 +1,15 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(user, "Пользователь", "Самостоятельно подключает устройства, управляет ими, настраивает сценарии, просматривает телеметрию")
+
+System_Ext(smart_devices, "Устройства партнёров", "Отопление, свет, ворота, камеры... Подключение по стандартным протоколам.")
+
+System_Ext(future_integrations, "Внешние системы (опционально, в будущем)", "Голосовые помощники, триггеры по погоде, IFTTT и др.")
+
+System(warmhouse_eco, "Экосистема Тёплый дом (To-Be)", "SaaS-платформа с поддержкой сценариев, модульных устройств и расширяемых интеграций.")
+
+Rel(user, warmhouse_eco, "Управляет устройствами, создаёт сценарии, просматривает данные", "HTTPS / Мобильное приложение")
+Rel(warmhouse_eco, smart_devices, "Управление и сбор телеметрии", "MQTT / HTTP / Webhook")
+Rel(warmhouse_eco, future_integrations, "Опциональные интеграции (в будущем)", "API / Webhook")
+@enduml

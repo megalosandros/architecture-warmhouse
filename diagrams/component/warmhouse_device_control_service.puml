@@ -1,0 +1,39 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "Пользователь", "Регистрирует устройство через UI")
+
+System_Ext(telemetry_auto, "Telemetry & Automation Service", "Получает события устройств")
+System_Ext(user_ctrl, "User & Module Control Service", "Запрашивает список устройств, статусы")
+System_Ext(devices, "Устройства партнёров", "Отправляют данные, принимают команды")
+
+Container_Boundary(device_eco, "Device & Ecosystem Service") {
+
+    Component(registration_api, "Device Registration API", "Go HTTP Handler", "REST API для регистрации устройств (QR, токен)")
+    Component(lifecycle_manager, "Device Lifecycle Manager", "Go Service", "Управление состоянием: активно, отключено, удалено")
+    Component(protocol_adapters, "Protocol Adapter Layer", "Go Interfaces + Plugins", "Поддержка MQTT, HTTP, Webhook. Расширяемо.")
+    Component(security, "Device Auth & Security", "Go Service", "JWT, сертификаты, аутентификация устройств")
+    Component(discovery, "Device Discovery Service", "Go Service", "Обнаружение в локальной сети (опционально)")
+    Component(event_publisher, "Event Publisher", "Go Service", "Публикация событий в NATS")
+    Component(metadata_store, "Device Metadata Store", "PostgreSQL", "Хранение метаданных устройств")
+    Component(status_cache, "Device Status Cache", "Redis", "Кеш статусов: онлайн/оффлайн, heartbeat")
+
+    Rel(registration_api, lifecycle_manager, "Создаёт/обновляет устройство", "Вызов метода")
+    Rel(registration_api, security, "Генерирует токен устройства", "Вызов метода")
+    Rel(lifecycle_manager, metadata_store, "Сохраняет/обновляет метаданные", "SQL")
+    Rel(lifecycle_manager, status_cache, "Обновляет статус", "Redis SET")
+
+    Rel(protocol_adapters, security, "Проверяет аутентификацию", "Вызов метода")
+    Rel(protocol_adapters, lifecycle_manager, "Обновляет статус по heartbeat", "Вызов метода")
+    Rel(protocol_adapters, event_publisher, "Публикует событие 'данные получены'", "NATS")
+
+    Rel(event_publisher, telemetry_auto, "device.event / device.telemetry", "NATS")
+    Rel(registration_api, user_ctrl, "Уведомление о новом устройстве (опционально)", "HTTP Callback")
+
+    BiRel(protocol_adapters, devices, "MQTT / HTTP", "Данные и команды")
+}
+
+Rel(user, registration_api, "Регистрация устройства", "HTTPS")
+Rel(user_ctrl, registration_api, "Запрос списка устройств", "HTTPS")
+Rel(telemetry_auto, registration_api, "Запрос метаданных устройства", "HTTPS")
+@enduml

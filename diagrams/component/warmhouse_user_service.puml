@@ -1,0 +1,43 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+
+Person(user, "Пользователь", "Использует веб или мобильное приложение для управления")
+
+System_Ext(device_eco, "Device & Ecosystem Service", "Получение списка устройств, отправка команд")
+System_Ext(telemetry_auto, "Telemetry & Automation Service", "Управление сценариями, получение телеметрии")
+
+Container_Boundary(user_ctrl, "User & Module Control Service") {
+
+    Component(api_gateway, "Web & Mobile API Gateway", "Go HTTP + GraphQL", "Единая точка входа для UI, аутентификация, маршрутизация")
+    Component(session_manager, "User Session Manager", "Go Service", "JWT, сессии, права доступа (Redis)")
+    Component(device_ui, "Device UI Controller", "Go Service", "Список устройств, статусы, группировка (запросы к device-eco-service)")
+    Component(module_handlers, "Module Control Handlers", "Go Interfaces + Impl", "HeatingHandler, LightingHandler, GateHandler, CameraHandler...")
+    Component(automation_ui, "Automation UI Manager", "Go Service", "Создание/редактирование сценариев (интеграция с telemetry-auto-service)")
+    Component(telemetry_display, "Telemetry Display Service", "Go Service", "Графики, история, виджеты (запросы к telemetry-auto-service)")
+    Component(profile_settings, "User Profile & Settings", "Go Service", "Профиль, дома, уведомления, предпочтения (PostgreSQL)")
+    Component(dashboard_renderer, "Dashboard Renderer", "Go Service", "Персонализированный дашборд, drag-and-drop, сохранение макета")
+
+    Rel(api_gateway, session_manager, "Проверка сессии / JWT", "Вызов метода")
+    Rel(api_gateway, device_ui, "GET /devices", "Маршрутизация")
+    Rel(api_gateway, module_handlers, "POST /device/{id}/command", "Маршрутизация")
+    Rel(api_gateway, automation_ui, "GET/POST /automations", "Маршрутизация")
+    Rel(api_gateway, telemetry_display, "GET /telemetry/history", "Маршрутизация")
+    Rel(api_gateway, profile_settings, "GET/PUT /profile", "Маршрутизация")
+    Rel(api_gateway, dashboard_renderer, "GET/PUT /dashboard/layout", "Маршрутизация")
+
+    Rel(device_ui, device_eco, "Получение списка устройств и статусов", "HTTPS")
+    Rel(module_handlers, device_eco, "Отправка команд управления", "HTTPS")
+
+    Rel(automation_ui, telemetry_auto, "Управление сценариями", "HTTPS")
+    Rel(telemetry_display, telemetry_auto, "Получение телеметрии и истории", "HTTPS")
+
+    Rel(profile_settings, telemetry_auto, "Обновление настроек уведомлений", "HTTPS")
+    Rel(dashboard_renderer, profile_settings, "Сохранение макета дашборда", "SQL")
+
+    Rel(session_manager, profile_settings, "Загрузка профиля при входе", "SQL")
+}
+
+Rel(user, api_gateway, "HTTPS / Mobile App", "Управление, настройки, просмотр данных")
+
+@enduml
