@@ -1,0 +1,42 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+
+Person(user, "Пользователь", "Создаёт и редактирует сценарии через UI")
+
+System_Ext(device_eco, "Device & Ecosystem Service", "Источник событий устройств, получатель команд")
+System_Ext(user_ctrl, "User & Module Control Service", "UI для управления сценариями и отображения истории")
+
+Container_Boundary(telemetry_auto, "Telemetry & Automation Service") {
+
+    Component(telemetry_ingestor, "Telemetry Ingestor", "Go Service", "Приём событий устройств через NATS, валидация, обогащение")
+    Component(ts_storage, "Time-Series Storage", "TimescaleDB", "Хранение телеметрии: температура, статусы, показания")
+    Component(rule_engine, "Rule Engine", "Go Service", "Хранение и компиляция правил (JSON/DSL)")
+    Component(event_evaluator, "Event Evaluator", "Go Service", "Оценка условий правил в реальном времени")
+    Component(action_executor, "Action Executor", "Go Service", "Выполнение действий: команды устройствам, уведомления")
+    Component(notification_manager, "Notification Manager", "Go Service", "Отправка push/email/SMS, управление шаблонами")
+    Component(rule_log_storage, "Rule & Log Storage", "PostgreSQL", "Правила, история выполнения, логи")
+    Component(automation_api, "Automation API", "Go HTTP Handler", "REST API для управления сценариями (UI)")
+
+    Rel(telemetry_ingestor, device_eco, "Запрос метаданных устройства", "HTTPS")
+    Rel(telemetry_ingestor, ts_storage, "Сохранение телеметрии", "SQL INSERT")
+    Rel(telemetry_ingestor, event_evaluator, "Передача события для оценки", "Внутренний вызов")
+
+    Rel(rule_engine, rule_log_storage, "Загрузка/сохранение правил", "SQL")
+    Rel(event_evaluator, rule_engine, "Получение активных правил", "Внутренний вызов")
+    Rel(event_evaluator, action_executor, "Триггер действия при выполнении условия", "Внутренний вызов")
+
+    Rel(action_executor, device_eco, "Отправка команды устройству", "HTTPS")
+    Rel(action_executor, notification_manager, "Генерация уведомления", "Внутренний вызов")
+    Rel(notification_manager, user, "Push / Email / SMS", "Firebase / SendGrid")
+
+    Rel(automation_api, user_ctrl, "Создание/редактирование правил", "HTTPS")
+    Rel(automation_api, rule_engine, "Обновление правил", "Внутренний вызов")
+    Rel(automation_api, rule_log_storage, "Сохранение изменений", "SQL")
+    Rel(automation_api, ts_storage, "Запрос истории телеметрии для UI", "SQL SELECT")
+}
+
+Rel(user_ctrl, automation_api, "Управление сценариями, получение истории", "HTTPS")
+Rel(device_eco, telemetry_ingestor, "device.event / device.telemetry", "NATS")
+
+@enduml

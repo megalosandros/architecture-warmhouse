@@ -1,0 +1,25 @@
+@startuml
+actor "Пользователь" as User
+participant "API Gateway" as API_GW
+participant "DeviceRegistrationHandler" as Handler
+participant "DeviceService" as Service
+participant "DeviceTokenValidator" as Validator
+participant "DeviceRepository" as Repo
+participant "DeviceJWTIssuer" as JWTIssuer
+participant "NATSEventPublisher" as EventPub
+
+User -> API_GW: POST /api/v1/devices/register\n{ "deviceToken": "abc123", "name": "Гостиная" }
+API_GW -> Handler: RegisterDevice(request)
+Handler -> Service: RegisterNewDevice(userID, "abc123")
+Service -> Validator: ValidateToken("abc123")
+Validator --> Service: DeviceInfo{type: "thermostat", vendor: "PartnerX", key: "key789"}
+Service -> Repo: Save(Device{ID, UserID, Type, Key...})
+Repo --> Service: error=nil
+Service -> JWTIssuer: IssueToken(deviceID, "key789")
+JWTIssuer --> Service: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+Service -> EventPub: PublishDeviceRegisteredEvent(deviceID, userID)
+EventPub --> Service: error=nil
+Service --> Handler: Device{ID, Name, Type, Status=Active, Token=...}
+Handler --> API_GW: 200 OK + Device DTO
+API_GW --> User: { "id": "dev-001", "name": "Гостиная", "status": "active" }
+@enduml

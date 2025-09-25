@@ -1,0 +1,16 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(user, "Пользователь", "Управляет отоплением, смотрит температуру")
+Person(engineer, "Специалист по установке", "Регистрирует устройства вручную")
+
+System_Ext(temp_sensor, "Датчик температуры", "Отправляет данные о температуре")
+System_Ext(heating_relay, "Реле отопления", "Включает/выключает котёл")
+
+System(warmhouse, "Система Тёплый дом (As-Is)", "Монолит на Go. Управление отоплением и мониторинг температуры.")
+
+Rel(user, warmhouse, "Управляет отоплением, просматривает температуру", "HTTPS")
+Rel(warmhouse, temp_sensor, "Опрашивает температуру", "HTTP")
+Rel(warmhouse, heating_relay, "Отправляет команды", "HTTP")
+Rel(engineer, warmhouse, "Регистрирует устройства", "Админ-интерфейс")
+@enduml

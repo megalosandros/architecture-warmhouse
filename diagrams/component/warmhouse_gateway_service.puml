@@ -1,0 +1,39 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+
+Person(user, "Пользователь", "Отправляет все запросы через API Gateway")
+
+System_Ext(user_ctrl, "User & Module Control Service", "Основной получатель запросов UI/API")
+System_Ext(device_eco, "Device & Ecosystem Service", "Запросы управления устройствами (опционально)")
+System_Ext(telemetry_auto, "Telemetry & Automation Service", "Запросы телеметрии/сценариев (опционально)")
+
+Container_Boundary(api_gw, "API Gateway") {
+
+    Component(http_router, "HTTP Router", "Go net/http", "Маршрутизация запросов по путям и методам")
+    Component(auth_middleware, "Auth Middleware", "Go Middleware", "Проверка JWT, сессий, прав доступа")
+    Component(service_discovery, "Service Discovery Client", "Go Client", "Получение адресов сервисов (Consul / Config)")
+    Component(rate_limiter, "Rate Limiter", "Go Middleware", "Ограничение запросов (Redis + Token Bucket)")
+    Component(request_logger, "Request Logger", "Go Middleware", "Логирование запросов (Zap → Loki)")
+    Component(circuit_breaker, "Circuit Breaker", "Go Middleware", "Защита от сбоев в зависимостях")
+    Component(metrics_collector, "Metrics Collector", "Go Middleware", "Сбор метрик (Prometheus)")
+    Component(config_manager, "Config Manager", "Go Service", "Загрузка и обновление конфигурации маршрутов")
+
+    Rel(http_router, auth_middleware, "Проверить аутентификацию", "Middleware chain")
+    Rel(http_router, rate_limiter, "Проверить лимиты", "Middleware chain")
+    Rel(http_router, circuit_breaker, "Проверить состояние сервиса", "Middleware chain")
+    Rel(http_router, service_discovery, "Получить адрес целевого сервиса", "Вызов метода")
+
+    Rel(http_router, user_ctrl, "Проксирование запроса", "HTTP")
+    Rel(http_router, device_eco, "Проксирование запроса (опционально)", "HTTP")
+    Rel(http_router, telemetry_auto, "Проксирование запроса (опционально)", "HTTP")
+
+    Rel(http_router, request_logger, "Залогировать запрос", "Async")
+    Rel(http_router, metrics_collector, "Обновить метрики", "Async")
+
+    Rel(config_manager, http_router, "Обновить правила маршрутизации", "Callback / Reload")
+}
+
+Rel(user, http_router, "Все HTTPS-запросы", "HTTPS")
+
+@enduml

@@ -1,0 +1,65 @@
+@startuml
+!define table(x) class x << (T, #FFAAAA) >>
+
+table(User) {
+  + id: UUID (PK)
+  + email: string (unique)
+  + full_name: string
+  + created_at: timestamp
+}
+
+table(House) {
+  + id: UUID (PK)
+  + user_id: UUID (FK → User.id)
+  + name: string
+  + address: string
+  + created_at: timestamp
+}
+
+table(DeviceType) {
+  + id: UUID (PK)
+  + name: string
+  + protocol: string
+  + command_schema: json
+  + telemetry_schema: json
+}
+
+table(Device) {
+  + id: UUID (PK)
+  + house_id: UUID (FK → House.id)
+  + device_type_id: UUID (FK → DeviceType.id)
+  + name: string
+  + serial_number: string (unique)
+  + auth_token: string
+  + status: enum
+  + last_seen: timestamp
+  + created_at: timestamp
+}
+
+table(TelemetryData) {
+  + id: UUID (PK)
+  + device_id: UUID (FK → Device.id)
+  + payload: json
+  + received_at: timestamp
+  + created_at: timestamp
+}
+
+table(AutomationRule) {
+  + id: UUID (PK)
+  + user_id: UUID (FK → User.id)
+  + name: string
+  + trigger: json
+  + action: json
+  + is_active: boolean
+  + created_at: timestamp
+  + updated_at: timestamp
+}
+
+User ||--o{ House : "1 → N"
+House ||--o{ Device : "1 → N"
+DeviceType ||--o{ Device : "1 → N"
+Device ||--o{ TelemetryData : "1 → N"
+User ||--o{ AutomationRule : "1 → N"
+
+
+@enduml

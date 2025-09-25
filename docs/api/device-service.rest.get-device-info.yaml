@@ -1,0 +1,68 @@
+openapi: 3.0.3
+info:
+  title: Device Eco Service API
+  version: 1.0.0
+
+paths:
+  /api/v1/devices/{deviceId}:
+    get:
+      summary: Получить информацию об устройстве
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "dev-thermo-001"
+      responses:
+        '200':
+          description: Устройство найдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+              examples:
+                example1:
+                  value:
+                    id: "dev-thermo-001"
+                    name: "Термостат в гостиной"
+                    type: "thermostat"
+                    houseId: "house-001"
+                    status: "active"
+                    lastSeen: "2025-04-05T10:30:00Z"
+                    serialNumber: "SN123456789"
+        '404':
+          description: Устройство не найдено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: 
+                    type: string
+                example:
+                  error: "Device not found"
+        '500':
+          description: Внутренняя ошибка сервера
+
+components:
+  schemas:
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        houseId:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive, disconnected]
+        lastSeen:
+          type: string
+          format: date-time
+        serialNumber:
+          type: string

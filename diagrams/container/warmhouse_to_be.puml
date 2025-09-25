@@ -1,0 +1,25 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "Пользователь", "Управляет устройствами, создаёт сценарии")
+
+System_Boundary(warmhouse, "Экосистема Тёплый дом (To-Be)") {
+    Container(api_gw, "API Gateway", "Traefik", "Маршрутизация, аутентификация")
+    Container(user_ctrl, "User & Module Control Service", "Go", "Веб/UI + управление модулями (отопление, свет...)")
+    Container(telemetry_auto, "Telemetry & Automation Service", "Go", "Сбор данных, сценарии, уведомления")
+    Container(device_eco, "Device & Ecosystem Service", "Go", "Регистрация устройств, поддержка протоколов (MQTT)")
+    
+    Rel(api_gw, user_ctrl, "Запросы управления", "HTTPS")
+    Rel(api_gw, telemetry_auto, "Запросы телеметрии/сценариев", "HTTPS")
+    Rel(api_gw, device_eco, "Запросы устройств", "HTTPS")
+    
+    Rel(telemetry_auto, device_eco, "Подписка на события устройств", "NATS")
+    Rel(user_ctrl, device_eco, "Управление состоянием устройств", "HTTPS")
+    Rel(user_ctrl, telemetry_auto, "Чтение телеметрии, создание сценариев", "HTTPS")
+}
+
+System_Ext(devices, "Устройства партнёров", "Отопление, свет, ворота, камеры...")
+
+Rel(user, api_gw, "HTTPS / Mobile App")
+Rel(device_eco, devices, "MQTT / HTTP")
+@enduml
